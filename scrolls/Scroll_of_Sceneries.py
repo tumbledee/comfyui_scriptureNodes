@@ -131,8 +131,8 @@ def resolve_value_wildcard(category: str, value: float, seed: int) -> str:
 # Scene node
 # ---------------------------------------------------------------------------
 
-class narrative_Scene_Builder:
-    CATEGORY = "NarrativeSystem"
+class Scroll_of_Sceneries:
+    CATEGORY = "Scrolls"
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -317,9 +317,9 @@ class narrative_Scene_Builder:
 
 # ── Registration ──────────────────────────────────────────────────────────────
 NODE_CLASS_MAPPINGS = {
-    "narrative_Scene_Builder_node": narrative_Scene_Builder,
+    "scroll_of_sceneries": Scroll_of_Sceneries,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "narrative_Scene_Builder_node": "narrative Scene Builder 🎬",
+    "scroll_of_sceneries": "Scroll of Sceneries 🎬",
 }

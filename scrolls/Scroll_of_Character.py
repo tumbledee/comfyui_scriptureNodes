@@ -27,13 +27,13 @@ from .lib.file_io import save_json, load_json, load_text_lines
 from .lib.settings import get_character_setting, get_root_directory
 root_dir = get_root_directory()
 
-class narrative_Character_node:
+class Scroll_of_Character:
     """
     Assembles a character definition dictionary and optionally
     saves to / loads from a JSON file.
     """
 
-    CATEGORY = "NarrativeSystem"
+    CATEGORY = "Scrolls"
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -119,9 +119,9 @@ class narrative_Character_node:
 
 # ── Registration ───────────────────────────────────────────────────────────────
 NODE_CLASS_MAPPINGS = {
-    "narrative_Character_node": narrative_Character_node,
+    "scroll_of_character": Scroll_of_Character,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "narrative_Character_node": "narrative Character Builder 🎭",
+    "scroll_of_character": "Scroll of Character 🎭",
 }

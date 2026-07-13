@@ -15,7 +15,7 @@ GENDER_MAP = {
 }
 
 
-class narrative_Character_Collector:
+class Scroll_of_Many_Faces:
     """
     Collects up to 10 CHARACTER dictionaries from CharacterBuilder nodes.
 
@@ -29,7 +29,7 @@ class narrative_Character_Collector:
     }
     """
 
-    CATEGORY = "NarrativeSystem"
+    CATEGORY = "Scrolls"
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -105,9 +105,9 @@ class narrative_Character_Collector:
 
 # ── Registration ───────────────────────────────────────────────────────────────
 NODE_CLASS_MAPPINGS = {
-    "narrative_Character_Collector_node": narrative_Character_Collector,
+    "scroll_of_many_faces": Scroll_of_Many_Faces,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "narrative_Character_Collector_node": "narrative Character Collector 🗂️",
+    "scroll_of_many_faces": "Scroll of Many Faces 🗂️",
 }

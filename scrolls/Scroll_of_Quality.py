@@ -58,14 +58,14 @@ def _save_db(db: dict, custom_dir: str = "") -> None:
         json.dump(db, f, indent=2, ensure_ascii=False)
 
 
-class narrative_Quality_Node:
+class Scroll_of_Quality:
     """
     Stores and retrieves per-checkpoint quality settings.
     On every execution the current values are written back to the registry.
     If a checkpoint_name is provided, its saved values are loaded first (auto-populate).
     """
 
-    CATEGORY = "NarrativeSystem"
+    CATEGORY = "Scrolls"
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -209,5 +209,5 @@ class narrative_Quality_Node:
         )
 
 
-NODE_CLASS_MAPPINGS        = {"narrative_Quality_node": narrative_Quality_Node}
-NODE_DISPLAY_NAME_MAPPINGS = {"narrative_Quality_node": "narrative Quality ⭐"}
+NODE_CLASS_MAPPINGS        = {"scroll_of_quality": Scroll_of_Quality}
+NODE_DISPLAY_NAME_MAPPINGS = {"scroll_of_quality": "Scroll of Quality ⭐"}

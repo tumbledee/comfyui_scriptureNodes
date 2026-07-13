@@ -285,8 +285,8 @@ def assemble_with_breaks(sections: list[str], separator: str = " BREAK\n") -> st
 # Node
 # ─────────────────────────────────────────────────────────────────────────────
 
-class narrative_story_Collapse_node:
-    CATEGORY = "NarrativeSystem"
+class Scroll_of_Binding:
+    CATEGORY = "Scrolls"
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -541,5 +541,5 @@ class narrative_story_Collapse_node:
 
 
 # ── Registration ──────────────────────────────────────────────────────────────
-NODE_CLASS_MAPPINGS        = {"narrative_Story_Collapse_node": narrative_story_Collapse_node}
-NODE_DISPLAY_NAME_MAPPINGS = {"narrative_Story_Collapse_node": "narrative Story Solver 🌀"}
+NODE_CLASS_MAPPINGS        = {"scroll_of_binding": Scroll_of_Binding}
+NODE_DISPLAY_NAME_MAPPINGS = {"scroll_of_binding": "Scroll of Binding 🌀"}

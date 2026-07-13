@@ -36,14 +36,14 @@ root_dir = get_root_directory()
 _narrative_state: dict[str, dict] = {}
 
 
-class narrative_Story_Script:
+class Scroll_of_Stories:
     """
     Manages a multi-line positive/negative script.
     Each line = one generation step. Supports sub-iterations per line.
     Iteration and sub-iteration are persistent across queue runs.
     """
 
-    CATEGORY = "NarrativeSystem"
+    CATEGORY = "Scrolls"
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -219,5 +219,5 @@ class narrative_Story_Script:
             "╚" + sep,
         ])
 
-NODE_CLASS_MAPPINGS    = {"narrative_Story_Script_node": narrative_Story_Script}
-NODE_DISPLAY_NAME_MAPPINGS = {"narrative_Story_Script_node": "narrative Story Script 📜"}
+NODE_CLASS_MAPPINGS    = {"scroll_of_stories": Scroll_of_Stories}
+NODE_DISPLAY_NAME_MAPPINGS = {"scroll_of_stories": "Scroll of Stories 📜"}
