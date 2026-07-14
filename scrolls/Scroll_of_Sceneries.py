@@ -1,5 +1,5 @@
 # Scene Node
-#A node to list simple keywords
+#A node to 
 
 #input:
 #- Scene Keywords

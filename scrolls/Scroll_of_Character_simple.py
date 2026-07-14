@@ -1,5 +1,5 @@
 # Character Node
-# A node with several character input fields to setup a intricate character for narrative purpose
+# A node with one character input fields to setup a intricate character for narrative purpose
 
 #input
 #- Identifier - Character name
@@ -27,7 +27,7 @@ from ..lib.file_io import save_json, load_json, load_text_lines
 from ..lib.settings import get_character_setting, get_root_directory
 root_dir = get_root_directory()
 
-class Scroll_of_Character:
+class Scroll_of_Character_Simplified:
     """
     Assembles a character definition dictionary and optionally
     saves to / loads from a JSON file.
@@ -46,22 +46,6 @@ class Scroll_of_Character:
             "optional": {
                 "character": ("STRING", {"default": "", "multiline": True,
                     "tooltip": "Character name, known character, or LoRA trigger"}),
-                "character_type": ("STRING", {"default": "", "multiline": False,
-                    "tooltip": "e.g. tsundere, delinquent, kuudere"}),
-                "character_value": ("FLOAT", {"default": 0.0, "min": -10.0, "max": 10.0,
-                    "step": 0.1,
-                    "tooltip": "Dynamic value to influence wildcard selection and keyword weights"}),
-                "hair": ("STRING", {"default": "", "multiline": True}),
-                "face": ("STRING", {"default": "", "multiline": True}),
-                "bodytype": ("STRING", {"default": "", "multiline": True,
-                    "tooltip": "Add basic bodyfeatures, everything too detailed and usually covered by clothes should be put into nude"}),
-                "nude": ("STRING", {"default": "", "multiline": True,
-                    "tooltip": "Nude appearance when no clothing is prompted"}),
-                "underwear": ("STRING", {"default": "", "multiline": True,
-                    "tooltip": "underwear appearance when no clothing is prompted"}),
-                "clothing": ("STRING", {"default": "", "multiline": True}),
-                "positive_additional": ("STRING", {"default": "", "multiline": True}),
-                "negative_additional": ("STRING", {"default": "", "multiline": True}),
                 "save_file_path": ("STRING", {"default": "",
                     "tooltip": "Full path to save character JSON. Leave empty to skip."}),
                 "load_file_path": ("STRING", {"default": "",
@@ -80,16 +64,6 @@ class Scroll_of_Character:
         gender,
         count,
         character="",
-        character_type="",
-        character_value=0.0,
-        hair="",
-        face="",
-        bodytype="",
-        nude="",
-        underwear="",
-        clothing="",
-        positive_additional="",
-        negative_additional="",
         save_file_path="",
         load_file_path="",
     ):
@@ -102,16 +76,6 @@ class Scroll_of_Character:
             "gender":              gender,
             "count":               count,
             "character":           character,
-            "character_type":      character_type,
-            "character_value":     character_value,
-            "hair":                hair,
-            "face":                face,
-            "bodytype":            bodytype,
-            "nude":                nude,
-            "underwear":           underwear,
-            "clothing":            clothing,
-            "positive_additional": positive_additional,
-            "negative_additional": negative_additional,
         }
 
         # ── SAVE to file ──────────────────────────────────────────────────────
@@ -119,9 +83,9 @@ class Scroll_of_Character:
 
 # ── Registration ───────────────────────────────────────────────────────────────
 NODE_CLASS_MAPPINGS = {
-    "scroll_of_character": Scroll_of_Character,
+    "scroll_of_character_simplified": Scroll_of_Character_Simplified,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "scroll_of_character": "Scroll of Character 🎭",
+    "scroll_of_character_simplified": "Scroll of Character Simplified 🎭",
 }

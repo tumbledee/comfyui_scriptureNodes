@@ -6,6 +6,7 @@ import os
 import json
 
 from .scrolls.Scroll_of_Character        import NODE_CLASS_MAPPINGS as A, NODE_DISPLAY_NAME_MAPPINGS as A2
+from .scrolls.Scroll_of_Character_Simplified import NODE_CLASS_MAPPINGS as AA, NODE_DISPLAY_NAME_MAPPINGS as AA2
 from .scrolls.Scroll_of_Many_Faces   import NODE_CLASS_MAPPINGS as B, NODE_DISPLAY_NAME_MAPPINGS as B2
 from .scrolls.Scroll_of_Sceneries            import NODE_CLASS_MAPPINGS as C, NODE_DISPLAY_NAME_MAPPINGS as C2
 from .scrolls.Scroll_of_Beauty            import NODE_CLASS_MAPPINGS as D, NODE_DISPLAY_NAME_MAPPINGS as D2
@@ -14,8 +15,8 @@ from .scrolls.Scroll_of_Quality          import NODE_CLASS_MAPPINGS as F, NODE_D
 from .scrolls.Scroll_of_Binding    import NODE_CLASS_MAPPINGS as G, NODE_DISPLAY_NAME_MAPPINGS as G2
 
 
-NODE_CLASS_MAPPINGS        = {**A, **B, **C, **D, **E, **F, **G}
-NODE_DISPLAY_NAME_MAPPINGS = {**A2, **B2, **C2, **D2, **E2, **F2, **G2}
+NODE_CLASS_MAPPINGS        = {**A, **AA, **B, **C, **D, **E, **F, **G}
+NODE_DISPLAY_NAME_MAPPINGS = {**A2, **AA2 **B2, **C2, **D2, **E2, **F2, **G2}
 
 
 # At the bottom of your __init__.py, after all NODE_CLASS_MAPPINGS merges:
