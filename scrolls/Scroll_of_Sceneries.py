@@ -17,8 +17,8 @@ import os
 import re
 import random
 import glob
-from .lib.file_io import save_json, load_json, load_text_lines
-from .lib.settings import get_character_setting
+from ..lib.file_io import save_json, load_json, load_text_lines
+from ..lib.settings import get_character_setting
 # ---------------------------------------------------------------------------
 # Wildcard resolver – reads .txt files from a wildcards folder.
 # Supports __wildcard_name__ syntax inside any string field.

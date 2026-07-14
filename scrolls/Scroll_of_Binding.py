@@ -28,8 +28,8 @@ import re
 import json
 import random
 from collections import Counter, defaultdict
-from .lib.file_io import save_json, load_json, load_text_lines
-from .lib.settings import get_root_directory
+from ..lib.file_io import save_json, load_json, load_text_lines
+from ..lib.settings import get_root_directory
 # ─────────────────────────────────────────────────────────────────────────────
 # Paths
 # ─────────────────────────────────────────────────────────────────────────────

@@ -26,8 +26,8 @@ import json
 import os
 import math
 import random
-from .lib.file_io import save_json, load_json, load_text_lines
-from .lib.settings import get_root_directory
+from ..lib.file_io import save_json, load_json, load_text_lines
+from ..lib.settings import get_root_directory
 # ---------------------------------------------------------------------------
 # Persistent state store keyed by node unique_id.
 # Survives re-execution within the same ComfyUI session.

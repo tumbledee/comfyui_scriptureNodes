@@ -1,7 +1,7 @@
 import json
 from collections import defaultdict
-from .lib.file_io import save_json, load_json, load_text_lines
-from .lib.settings import get_character_setting
+from ..lib.file_io import save_json, load_json, load_text_lines
+from ..lib.settings import get_character_setting
 
 # ── Gender normalisation map ───────────────────────────────────────────────────
 # Maps raw gender values from CharacterBuilder to canonical singular / plural tags

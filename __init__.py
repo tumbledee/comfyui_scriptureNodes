@@ -5,7 +5,7 @@
 import os
 import json
 
-from .scrolls.scroll_of_character        import NODE_CLASS_MAPPINGS as A, NODE_DISPLAY_NAME_MAPPINGS as A2
+from .scrolls.Scroll_of_Character        import NODE_CLASS_MAPPINGS as A, NODE_DISPLAY_NAME_MAPPINGS as A2
 from .scrolls.Scroll_of_Many_Faces   import NODE_CLASS_MAPPINGS as B, NODE_DISPLAY_NAME_MAPPINGS as B2
 from .scrolls.Scroll_of_Sceneries            import NODE_CLASS_MAPPINGS as C, NODE_DISPLAY_NAME_MAPPINGS as C2
 from .scrolls.Scroll_of_Beauty            import NODE_CLASS_MAPPINGS as D, NODE_DISPLAY_NAME_MAPPINGS as D2

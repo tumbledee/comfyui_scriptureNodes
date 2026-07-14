@@ -23,8 +23,8 @@
 
 
 import os, re
-from .lib.file_io import save_json, load_json, load_text_lines
-from .lib.settings import get_character_setting, get_root_directory
+from ..lib.file_io import save_json, load_json, load_text_lines
+from ..lib.settings import get_character_setting, get_root_directory
 root_dir = get_root_directory()
 
 class Scroll_of_Character:

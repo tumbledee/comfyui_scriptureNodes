@@ -24,8 +24,8 @@
 
 import json
 import os
-from .lib.file_io import save_json, load_json, load_text_lines
-from .lib.settings import get_character_setting
+from ..lib.file_io import save_json, load_json, load_text_lines
+from ..lib.settings import get_character_setting
 # ---------------------------------------------------------------------------
 # Default save location: same directory as this file.
 # Toggling custom_directory=True reveals a text field for an override path.
