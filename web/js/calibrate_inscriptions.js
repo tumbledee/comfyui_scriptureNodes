@@ -1,6 +1,8 @@
 import { app } from "../../scripts/app.js";
 import { api } from "../../scripts/api.js";
 
+
+// #region Data
 // ── Setting key constants ────────────────────────────────────────────────────
 const KEY_ROOT_DIR        = "CharacterSystem.RootDirectory";
 const KEY_SETUP_BTN       = "CharacterSystem.SetupDirectoriesButton";
@@ -38,7 +40,9 @@ const DEFAULT_CHAR_SEGMENTS = JSON.stringify([
     { id: "clothing",         label: "Clothing",              enabled: true },
     { id: "actions",          label: "Actions / Modifiers",   enabled: true },
 ]);
+// #endregion
 
+// #region Functions
 // ── Helper: build a draggable toggle list DOM element ───────────────────────
 function buildSegmentList(settingKey, defaultJson, currentValue) {
     let segments;
@@ -125,7 +129,9 @@ function buildSegmentList(settingKey, defaultJson, currentValue) {
     rebuildItems(segments);
     return container;
 }
+//#endregion
 
+//#region Register in Comfy
 // ── Register all settings ────────────────────────────────────────────────────
 app.registerExtension({
     name: "CharacterSystem.Settings",
@@ -234,3 +240,4 @@ app.registerExtension({
         });
     },
 });
+//#endregion

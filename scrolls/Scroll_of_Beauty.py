@@ -25,46 +25,49 @@ from ..lib.settings import get_character_setting
 # Default path: ComfyUI/wildcards/  (override via WILDCARDS_PATH env var)
 # ---------------------------------------------------------------------------
 
-WILDCARDS_DIR = os.environ.get(
-    "WILDCARDS_PATH",
-    os.path.join(os.path.dirname(__file__), "..", "..", "wildcards"),
-)
 
-_wildcard_cache: dict[str, list[str]] = {}
+# --- supposed wildcards ---
+#
+# WILDCARDS_DIR = os.environ.get(
+#     "WILDCARDS_PATH",
+#     os.path.join(os.path.dirname(__file__), "..", "..", "wildcards"),
+# )
 
-
-def _load_wildcard(name: str) -> list[str]:
-    if name in _wildcard_cache:
-        return _wildcard_cache[name]
-    path = os.path.join(WILDCARDS_DIR, f"{name}.txt")
-    if os.path.isfile(path):
-        with open(path, "r", encoding="utf-8") as f:
-            lines = [l.strip() for l in f if l.strip() and not l.startswith("#")]
-        _wildcard_cache[name] = lines
-        return lines
-    _wildcard_cache[name] = []
-    return []
+# _wildcard_cache: dict[str, list[str]] = {}
 
 
-def resolve_wildcards(text: str, seed: int = -1) -> str:
-    """Recursively expand __wildcard__ tokens in text."""
-    if not text:
-        return text
-    rng = random.Random(seed) if seed >= 0 else random.Random()
+# def _load_wildcard(name: str) -> list[str]:
+#     if name in _wildcard_cache:
+#         return _wildcard_cache[name]
+#     path = os.path.join(WILDCARDS_DIR, f"{name}.txt")
+#     if os.path.isfile(path):
+#         with open(path, "r", encoding="utf-8") as f:
+#             lines = [l.strip() for l in f if l.strip() and not l.startswith("#")]
+#         _wildcard_cache[name] = lines
+#         return lines
+#     _wildcard_cache[name] = []
+#     return []
 
-    def _expand(t: str, depth: int = 0) -> str:
-        if depth > 16:
-            return t
-        pattern = r"__([a-zA-Z0-9_/\-]+)__"
-        def _replace(m):
-            entries = _load_wildcard(m.group(1))
-            if not entries:
-                return m.group(0)  # leave token intact if file missing
-            chosen = rng.choice(entries)
-            return _expand(chosen, depth + 1)
-        return re.sub(pattern, _replace, t)
 
-    return _expand(text)
+# def resolve_wildcards(text: str, seed: int = -1) -> str:
+#     """Recursively expand __wildcard__ tokens in text."""
+#     if not text:
+#         return text
+#     rng = random.Random(seed) if seed >= 0 else random.Random()
+
+#     def _expand(t: str, depth: int = 0) -> str:
+#         if depth > 16:
+#             return t
+#         pattern = r"__([a-zA-Z0-9_/\-]+)__"
+#         def _replace(m):
+#             entries = _load_wildcard(m.group(1))
+#             if not entries:
+#                 return m.group(0)  # leave token intact if file missing
+#             chosen = rng.choice(entries)
+#             return _expand(chosen, depth + 1)
+#         return re.sub(pattern, _replace, t)
+
+#     return _expand(text)
 
 
 # ---------------------------------------------------------------------------
@@ -75,27 +78,27 @@ def resolve_wildcards(text: str, seed: int = -1) -> str:
 # Output appended to positive prompt: "<lora:add_detail:0.8> <lora:light_anime:0.6>"
 # ---------------------------------------------------------------------------
 
-def parse_loras(raw: str) -> list[dict]:
-    """Parse 'lora_name:weight' or 'lora_name' entries into structured list."""
-    loras = []
-    if not raw.strip():
-        return loras
-    for entry in re.split(r"[,\n]+", raw):
-        entry = entry.strip()
-        if not entry:
-            continue
-        parts = entry.rsplit(":", 1)
-        name = parts[0].strip()
-        try:
-            weight = float(parts[1].strip()) if len(parts) == 2 else 1.0
-        except ValueError:
-            weight = 1.0
-        loras.append({"name": name, "weight": weight})
-    return loras
+# def parse_loras(raw: str) -> list[dict]:
+#     """Parse 'lora_name:weight' or 'lora_name' entries into structured list."""
+#     loras = []
+#     if not raw.strip():
+#         return loras
+#     for entry in re.split(r"[,\n]+", raw):
+#         entry = entry.strip()
+#         if not entry:
+#             continue
+#         parts = entry.rsplit(":", 1)
+#         name = parts[0].strip()
+#         try:
+#             weight = float(parts[1].strip()) if len(parts) == 2 else 1.0
+#         except ValueError:
+#             weight = 1.0
+#         loras.append({"name": name, "weight": weight})
+#     return loras
 
 
-def build_lora_tags(loras: list[dict]) -> str:
-    return " ".join(f"<lora:{l['name']}:{l['weight']:.2f}>" for l in loras)
+# def build_lora_tags(loras: list[dict]) -> str:
+#     return " ".join(f"<lora:{l['name']}:{l['weight']:.2f}>" for l in loras)
 
 
 # ---------------------------------------------------------------------------
@@ -117,14 +120,14 @@ def value_tier(v: float) -> str:
     return "mid"
 
 
-def resolve_value_wildcard(category: str, value: float, seed: int) -> str:
-    tier = value_tier(value)
-    key = f"scene/{tier}/{category}"
-    entries = _load_wildcard(key)
-    if not entries:
-        return ""
-    rng = random.Random(seed) if seed >= 0 else random.Random()
-    return rng.choice(entries)
+# def resolve_value_wildcard(category: str, value: float, seed: int) -> str:
+#     tier = value_tier(value)
+#     key = f"scene/{tier}/{category}"
+#     entries = _load_wildcard(key)
+#     if not entries:
+#         return ""
+#     rng = random.Random(seed) if seed >= 0 else random.Random()
+#     return rng.choice(entries)
 
 
 # ---------------------------------------------------------------------------
@@ -200,28 +203,28 @@ class Scroll_of_Beauty:
         seed = wildcard_seed if wildcard_seed >= 0 else random.randint(0, 2**32)
 
         # ── Expand inline wildcards in all text fields ────────────────────────
-        fields_raw = {
-            "lighting":             lighting,
-            "camera":               camera,
-            "style":                style,
-            "vfx":                  vfx,
-            "positive_additional":  positive_additional,
-            "negative_additional":  negative_additional,
-        }
-        fields_resolved = {k: resolve_wildcards(v, seed) for k, v in fields_raw.items()}
+        # fields_raw = {
+        #     "lighting":             lighting,
+        #     "camera":               camera,
+        #     "style":                style,
+        #     "vfx":                  vfx,
+        #     "positive_additional":  positive_additional,
+        #     "negative_additional":  negative_additional,
+        # }
+        # fields_resolved = {k: resolve_wildcards(v, seed) for k, v in fields_raw.items()}
 
         # ── Auto-inject value-driven wildcards ────────────────────────────────
         # Only injects when the field is empty, so manual entries always win.
-        auto_categories = ["lighting", "camera", "vfx"]
-        for cat in auto_categories:
-            if not fields_resolved[cat].strip():
-                auto = resolve_value_wildcard(cat, scene_value, seed)
-                if auto:
-                    fields_resolved[cat] = auto
+        # auto_categories = ["lighting", "camera", "vfx"]
+        # for cat in auto_categories:
+        #     if not fields_resolved[cat].strip():
+        #         auto = resolve_value_wildcard(cat, scene_value, seed)
+        #         if auto:
+        #             fields_resolved[cat] = auto
 
         # ── Parse LoRAs ───────────────────────────────────────────────────────
-        parsed_loras = parse_loras(loras)
-        lora_tags = build_lora_tags(parsed_loras)
+        # parsed_loras = parse_loras(loras)
+        # lora_tags = build_lora_tags(parsed_loras)
 
         # ── Assemble positive prompt parts ────────────────────────────────────
         positive_parts = [
