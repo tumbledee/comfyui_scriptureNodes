@@ -103,14 +103,29 @@ class CheckpointLoaderWithSettings:
                 "cfg": ("FLOAT", {"default": 7.0, "min": 0.0, "max": 30.0, "step": 0.1}),
                 "sampler_name": (comfy.samplers.KSampler.SAMPLERS,),
                 "scheduler": (comfy.samplers.KSampler.SCHEDULERS,),
-                "positive Prompt": ("STRING", {"default": ""}),
-                "negative Prompt": ("STRING", {"default": ""}),
-                "setting Name": ("STRING", {"default": "default"})
+                "positive quality Prompt": ("STRING", {
+                    "multiline": True, 
+                    "default": "best Quality, masterpiece, realistic, high quality, 8k, ultra-detailed",
+                    "tooltip": (
+                        "Positive prompt.\n"
+                        "Supports only strings so far\n"
+                        "no wildcards or random lines from files yet."
+                    )
+                }),
+                "negative quality Prompt": ("STRING", {
+                    "multiline": True, 
+                    "default": "worst quality, low quality, blurry, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, jpeg artifacts",
+                    "tooltip": (
+                        "Negative prompt.\n"
+                        "Supports only strings so far\n"
+                        "no wildcards or random lines from files yet."
+                    )
+                }),
             }
         }
 
-    RETURN_TYPES = ("MODEL", "CLIP", "VAE", "INT", "FLOAT", "STRING", "STRING", "STRING", "STRING", "STRING")
-    RETURN_NAMES = ("model", "clip", "vae", "steps", "cfg", "sampler_name", "scheduler", "positive Prompt", "negative Prompt", "setting Name")
+    RETURN_TYPES = ("MODEL", "CLIP", "VAE", "INT", "FLOAT", "STRING", "STRING", "STRING", "STRING")
+    RETURN_NAMES = ("model", "clip", "vae", "steps", "cfg", "sampler_name", "scheduler", "positive quality Prompt", "negative quality Prompt")
     FUNCTION = "load"
     CATEGORY = "loaders/settings"
 

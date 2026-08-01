@@ -1,4 +1,5 @@
 import { app } from "/scripts/app.js";
+import { api } from "/scripts/api.js";
 
 // #region Notifications
 // Disable notifications
@@ -43,7 +44,9 @@ app.registerExtension({
       node.setDirtyCanvas(true, true);
     };
     // #endregion
+    //------------------------------------------------------------------------------
     // #region Preset Management
+    //------------------------------------------------------------------------------
     // Text field for naming a preset before saving
     const presetNameWidget = node.addWidget("text", "preset_name", "default", () => {});
 
@@ -71,8 +74,10 @@ app.registerExtension({
       refreshPresetList();
     };
 
-    //#endregion
+    //#endregion    
+    //------------------------------------------------------------------------------
     // #region Buttons
+    //------------------------------------------------------------------------------
     node.addWidget("button", "💾 Save Preset", null, async () => {
       const name = (presetNameWidget.value || "").trim();
       if (!name) {
@@ -107,11 +112,16 @@ app.registerExtension({
       const data = await res.json();
       if (data.status === "ok") {
         applySettings(data.settings);
+        // Event for Ksampler
+        api.dispatchEvent(new CustomEvent("checkpoint_settings.loaded", {
+          detail: { ckpt_name: ckptWidget.value, settings: data.settings },
+        }));
         notify(`Preset "${name}" loaded.`);
       } else {
         notify("Load failed: " + data.error, true);
       }
     });
+
 
     refreshPresetList();
   },
