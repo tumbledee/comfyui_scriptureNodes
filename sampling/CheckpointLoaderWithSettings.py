@@ -61,6 +61,37 @@ def save_all_settings(data):
     with open(SETTINGS_FILE, "w") as f:
         json.dump(data, f, indent=2)
 
+def find_entry_key(data, ckpt_name, file_hash):
+    if file_hash and file_hash in data:
+        return file_hash
+    for k, v in data.items():
+        if v.get("name") == ckpt_name:
+            return k
+    return None
+# Enable second improvement, disable following if else
+# Prioritize matching by name first, then by hash. This allows users to retrieve settings
+#    if ckpt_name and ckpt_name in data:
+#        entry = data[ckpt_name]
+#        matched_by = "name"
+#    else:
+#        file_hash = compute_hash(ckpt_path) if ckpt_path else None
+#        for v in data.values():
+#            if v.get("hash") == file_hash:
+#                # Key = ckpt_name # rename key to ckpt_name for consistency, but still match by hash
+#                entry = v
+#                matched_by = "hash"
+#                break
+#    if file_hash and file_hash in data:
+#        entry = data[file_hash]
+#        matched_by = "hash"
+#    else:
+#        for v in data.values():
+#            if v.get("name") == ckpt_name:
+#                entry = v
+#                matched_by = "name"
+#                break
+
+# ---------------- CheckpointLoaderWithSettings Node ----------------
 
 class CheckpointLoaderWithSettings:
     @classmethod
@@ -72,13 +103,14 @@ class CheckpointLoaderWithSettings:
                 "cfg": ("FLOAT", {"default": 7.0, "min": 0.0, "max": 30.0, "step": 0.1}),
                 "sampler_name": (comfy.samplers.KSampler.SAMPLERS,),
                 "scheduler": (comfy.samplers.KSampler.SCHEDULERS,),
-                "width": ("INT", {"default": 512, "min": 64, "max": 8192, "step": 8}),
-                "height": ("INT", {"default": 512, "min": 64, "max": 8192, "step": 8}),
+                "positive Prompt": ("STRING", {"default": ""}),
+                "negative Prompt": ("STRING", {"default": ""}),
+                "setting Name": ("STRING", {"default": "default"})
             }
         }
 
-    RETURN_TYPES = ("MODEL", "CLIP", "VAE", "INT", "FLOAT", "STRING", "STRING", "INT", "INT")
-    RETURN_NAMES = ("model", "clip", "vae", "steps", "cfg", "sampler_name", "scheduler", "width", "height")
+    RETURN_TYPES = ("MODEL", "CLIP", "VAE", "INT", "FLOAT", "STRING", "STRING", "STRING", "STRING", "STRING")
+    RETURN_NAMES = ("model", "clip", "vae", "steps", "cfg", "sampler_name", "scheduler", "positive Prompt", "negative Prompt", "setting Name")
     FUNCTION = "load"
     CATEGORY = "loaders/settings"
 
