@@ -10,18 +10,18 @@ const NODE_NAME = "KSampler_Sync";
 app.registerExtension({
   name: "ksampler.checkpoint.sync",
 
-  // async nodeCreated(node) {
-  //   if (node.comfyClass !== NODE_NAME) return;
-  //   const syncWidget = node.widgets.find((w) => w.name === "sync_with_checkpoint");
-  //   if (!syncWidget) return;
+  async nodeCreated(node) {
+    if (node.comfyClass !== NODE_NAME) return;
+    const syncWidget = node.widgets.find((w) => w.name === "enable_sync");
+    if (!syncWidget) return;
 
-  //   const originalCallback = syncWidget.callback;
-  //   syncWidget.callback = function (...args) {
-  //     if (originalCallback) originalCallback.apply(this, args);
-  //     node.bgcolor = syncWidget.value ? undefined : "#553333"; // reddish tint when sync is off
-  //     node.setDirtyCanvas(true, true);
-  //   };
-  // },
+    const originalCallback = syncWidget.callback;
+    syncWidget.callback = function (...args) {
+      if (originalCallback) originalCallback.apply(this, args);
+      node.bgcolor = syncWidget.value ? undefined : "#553333"; // reddish tint when sync is off
+      node.setDirtyCanvas(true, true);
+    };
+  },
 
 
   async setup() {

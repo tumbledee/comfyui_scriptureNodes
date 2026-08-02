@@ -55,8 +55,31 @@ app.registerExtension({
     // Dropdown ("toggle list") of existing presets for the current checkpoint
     const presetSelectWidget = node.addWidget("combo", "preset_select", "", () => {}, { values: [] });
 
+    // Store the current checkpoint name to find the setting data
+    const ckptWidget = getWidget("ckpt_name");
+
+    // Auto-load the selected preset when the checkpoint changes or when the node is configured
+    const autoLoadPreset = async () => {
+      const presetName = presetSelectWidget.value;
+      if (!presetName) return;  // if no presets exist for this checkpoint yet
+      const res = await fetch("/checkpoint_settings/load", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ckpt_name: ckptWidget.value, preset_name: presetName }),
+      });
+      const data = await res.json();
+      if (data.status === "ok") {
+        applySettings(data.settings);
+        // Event for Ksampler
+        api.dispatchEvent(new CustomEvent("checkpoint_settings.loaded", {
+          detail: { ckpt_name: ckptWidget.value, settings: data.settings },
+        }));
+        notify(`Preset "${presetName}" auto-loaded.`);
+      }
+    };
+
+    // refreshes the preset dropdown list based on the current checkpoint selection
     const refreshPresetList = async () => {
-      const ckptWidget = getWidget("ckpt_name");
       const res = await fetch("/checkpoint_settings/list", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -65,19 +88,33 @@ app.registerExtension({
       const data = await res.json();
       const presets = data.presets || [];
       presetSelectWidget.options.values = presets;
-      presetSelectWidget.value = presets.includes(presetSelectWidget.value) ? presetSelectWidget.value : (presets[0] || "");
+
+      // Keep current selection if still valid, else fall back to first available preset
+      if (!presets.includes(presetSelectWidget.value)) {
+        presetSelectWidget.value = presets[0] || "";
+      }
       node.setDirtyCanvas(true, true);
     };
-    // Refresh dropdown whenever the checkpoint dropdown itself changes
-    const ckptWidget = getWidget("ckpt_name");
+    // #endregion
+    // ------------------------------------------------------------------------------
+    // #region Load Settings Auto
+    // ------------------------------------------------------------------------------
+    // Load Settings Refresh dropdown whenever the checkpoint dropdown itself changes
     const originalCallback = ckptWidget.callback;
     ckptWidget.callback = function (...args) {
       if (originalCallback) originalCallback.apply(this, args);
-      refreshPresetList();
+      refreshPresetList().then(autoLoadPreset); // auto-load the first preset if available
+    };
+
+    // Auto-load whenever the preset dropdown itself changes
+    const originalPresetCallback = presetSelectWidget.callback;
+    presetSelectWidget.callback = function (...args) {
+      if (originalPresetCallback) originalPresetCallback.apply(this, args);
+      autoLoadPreset();
     };
 
     //#endregion    
-    //------------------------------------------------------------------------------
+
     // #region Buttons
     //------------------------------------------------------------------------------
     node.addWidget("button", "💾 Save Preset", null, async () => {
@@ -100,31 +137,46 @@ app.registerExtension({
         notify("Save failed: " + data.error, true);
       }
     });
-    node.addWidget("button", "📂 Load Preset", null, async () => {
-      const name = presetSelectWidget.value;
-      if (!name) {
-        notify("No preset selected.", true);
-        return;
-      }
-      const res = await fetch("/checkpoint_settings/load", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ckpt_name: ckptWidget.value, preset_name: name }),
+    // -------------- Load button is obsolete now -------------
+    //
+    // node.addWidget("button", "📂 Load Preset", null, async () => {
+    //   const name = presetSelectWidget.value;
+    //   if (!name) {
+    //     notify("No preset selected.", true);
+    //     return;
+    //   }
+    //   const res = await fetch("/checkpoint_settings/load", {
+    //     method: "POST",
+    //     headers: { "Content-Type": "application/json" },
+    //     body: JSON.stringify({ ckpt_name: ckptWidget.value, preset_name: name }),
+    //   });
+    //   const data = await res.json();
+    //   if (data.status === "ok") {
+    //     applySettings(data.settings);
+    //     // Event for Ksampler
+    //     api.dispatchEvent(new CustomEvent("checkpoint_settings.loaded", {
+    //       detail: { ckpt_name: ckptWidget.value, settings: data.settings },
+    //     }));
+    //     notify(`Preset "${name}" loaded.`);
+    //   } else {
+    //     notify("Load failed: " + data.error, true);
+    //   }
+    // });
+
+        //------------------------------------------------------------------------------
+    // #region reload presets on node configure 
+    const origOnConfigure = node.onConfigure;
+    node.onConfigure = function (info) {
+      const result = origOnConfigure ? origOnConfigure.apply(this, arguments) : undefined;
+      // Widget values are already restored at this point, so ckptWidget.value is correct
+      refreshPresetList().then(() => {
+        autoLoadPreset();
       });
-      const data = await res.json();
-      if (data.status === "ok") {
-        applySettings(data.settings);
-        // Event for Ksampler
-        api.dispatchEvent(new CustomEvent("checkpoint_settings.loaded", {
-          detail: { ckpt_name: ckptWidget.value, settings: data.settings },
-        }));
-        notify(`Preset "${name}" loaded.`);
-      } else {
-        notify("Load failed: " + data.error, true);
-      }
-    });
+      return result;
+    };
+    // #endregion
 
-
-    refreshPresetList();
+    // Initial population for freshly-added nodes (not from a saved workflow
+    refreshPresetList().then(autoLoadPreset);
   },
 });
