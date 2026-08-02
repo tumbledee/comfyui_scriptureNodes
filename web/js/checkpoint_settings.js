@@ -16,12 +16,14 @@ function notify(message, isError = false) {
 
 // #endregion
 // #region API Calls
+const NODE_NAMES = ["Checkpoint_w_Settings"];
+const NODE_NAME = "Checkpoint_w_Settings";
 
 app.registerExtension({
   name: "checkpoint.settings.buttons",
 
   async nodeCreated(node) {
-    if (node.comfyClass !== "CheckpointLoaderWithSettings") return;
+    if (node.comfyClass !== NODE_NAME) return;
 
     const getWidget = (name) => node.widgets.find((w) => w.name === name);
     const trackedFields = ["steps", "cfg", "sampler_name", "scheduler", "positive Prompt", "negative Prompt", "setting Name"];

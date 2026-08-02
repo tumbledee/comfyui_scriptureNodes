@@ -1,8 +1,7 @@
 from server import PromptServer
 from aiohttp import web
 import folder_paths
-from ..sampling.CheckpointLoaderWithSettings import compute_hash, load_all_settings, save_all_settings, find_entry_key
-#from ..lib.datastorage import compute_hash, load_all_settings, save_all_settings, find_entry_key
+from ..lib.datastorage import compute_hash, load_all_settings, save_all_settings, find_entry_key
 # Saves and Stores settings per checkpoint
 
 
@@ -62,13 +61,3 @@ async def list_checkpoint_presets(request):
 
     presets = list(data[key]["presets"].keys()) if key else []
     return web.json_response({"status": "ok", "presets": presets})
-
-    entry = None
-    matched_by = None
-
-
-
-    if entry is None:
-        return web.json_response({"error": "no saved settings found"}, status=404)
-
-    return web.json_response({"status": "ok", "settings": entry["settings"], "matched_by": matched_by})

@@ -29,45 +29,6 @@ import folder_paths
 import comfy.samplers
 import comfy.sd
 
-NODE_ROOT = os.path.dirname(os.path.dirname(__file__)) # steps up one level to the root of the node package
-SETTINGS_FILE = os.path.join(NODE_ROOT, "data", "checkpoint_settings.json")
-os.makedirs(os.path.dirname(SETTINGS_FILE), exist_ok=True)
-
-
-def compute_hash(filepath, quick=True, chunk_size=1024 * 1024):
-    """Quick hash reads only the first 1MB (fast, good enough to detect the same file).
-    Set quick=False for a full-file SHA-256 (slower on large checkpoints)."""
-    hasher = hashlib.sha256()
-    with open(filepath, "rb") as f:
-        if quick:
-            hasher.update(f.read(chunk_size))
-        else:
-            while chunk := f.read(chunk_size):
-                hasher.update(chunk)
-    return hasher.hexdigest()
-
-
-def load_all_settings():
-    if not os.path.exists(SETTINGS_FILE):
-        return {}
-    try:
-        with open(SETTINGS_FILE, "r") as f:
-            return json.load(f)
-    except Exception:
-        return {}
-
-
-def save_all_settings(data):
-    with open(SETTINGS_FILE, "w") as f:
-        json.dump(data, f, indent=2)
-
-def find_entry_key(data, ckpt_name, file_hash):
-    if file_hash and file_hash in data:
-        return file_hash
-    for k, v in data.items():
-        if v.get("name") == ckpt_name:
-            return k
-    return None
 # Enable second improvement, disable following if else
 # Prioritize matching by name first, then by hash. This allows users to retrieve settings
 #    if ckpt_name and ckpt_name in data:
@@ -91,9 +52,9 @@ def find_entry_key(data, ckpt_name, file_hash):
 #                matched_by = "name"
 #                break
 
-# ---------------- CheckpointLoaderWithSettings Node ----------------
+# ---------------- Checkpoint_w_Settings Node ----------------
 
-class CheckpointLoaderWithSettings:
+class Checkpoint_w_Settings:
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -141,5 +102,5 @@ class CheckpointLoaderWithSettings:
         return (model, clip, vae, steps, cfg, sampler_name, scheduler, width, height)
 
 
-NODE_CLASS_MAPPINGS = {"CheckpointLoaderWithSettings": CheckpointLoaderWithSettings}
-NODE_DISPLAY_NAME_MAPPINGS = {"CheckpointLoaderWithSettings": "Checkpoint Loader (w/ Settings Save)"}
+NODE_CLASS_MAPPINGS = {"Checkpoint_w_Settings": Checkpoint_w_Settings}
+NODE_DISPLAY_NAME_MAPPINGS = {"Checkpoint_w_Settings": "Checkpoint w/ Settings"}

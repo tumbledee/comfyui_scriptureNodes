@@ -5,8 +5,8 @@
 import os
 import json
 
-from .sampling.CheckpointLoaderWithSettings import NODE_CLASS_MAPPINGS as ckptSL, NODE_DISPLAY_NAME_MAPPINGS as ckptSL2
-from .sampling.ksampler_loader import NODE_CLASS_MAPPINGS as ksmpSL, NODE_DISPLAY_NAME_MAPPINGS as ksmpSL2
+from .sampling.Checkpoint_Loader import NODE_CLASS_MAPPINGS as ckptSL, NODE_DISPLAY_NAME_MAPPINGS as ckptSL2
+from .sampling.ksampler_sync import NODE_CLASS_MAPPINGS as ksmpSL, NODE_DISPLAY_NAME_MAPPINGS as ksmpSL2
 from .scrolls.Scroll_of_Character           import NODE_CLASS_MAPPINGS as A, NODE_DISPLAY_NAME_MAPPINGS as A2
 from .scrolls.Scroll_of_Character_simple    import NODE_CLASS_MAPPINGS as AA, NODE_DISPLAY_NAME_MAPPINGS as AA2
 from .scrolls.Scroll_of_Many_Faces          import NODE_CLASS_MAPPINGS as B, NODE_DISPLAY_NAME_MAPPINGS as B2
