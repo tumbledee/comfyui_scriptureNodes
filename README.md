@@ -1,6 +1,7 @@
 # ScriptureNodes
 A comfy UI custom node collection with the main purpose for automatized story generation as full workflow with a few utility nodes
 
+
 # Samplers Save/Load Checkpoint Settings
 I'm annoyed that nobody has created this logical thing, to save and load the settings of a checkpoint. Since we have so many different systems it's crazy to me that nobody implemented a thing like this, so I got annoyed enough to create them: 
 
@@ -14,14 +15,19 @@ To load the settings for a specific checkpoint, just select the checkpoint, and 
 ## Checkpoint /w settings
 this node is a regular Checkpoint with additional Ksampler settings to unify the settings onto one node.
 
-## KSampler sync
+## KSampler Sync
 When loading settings of the checkpoint this node applies the Ksampler settings automatically without wiring.
 Unchecking the sync button prevents the node from syncing
 
 
-# Future features:
-- New only checkpoint data save load 
+## Future Sampler features:
+- ~~New only checkpoint data save load~~ 
 - Checkpoint save load with Pipe support
-- Checkpoints with Lora Manager support
-- Loading applies automatically when preset is changed or checkpoint is placed
-- Enable Ksampler save settings Currently only the data on the checkpoint is saved.
+- ~~Checkpoints with Lora Manager support~~
+- ~~Loading applies automatically when preset is changed or checkpoint is placed~~
+- ~~Enable Ksampler save settings Currently only the data on the checkpoint is saved.~~
+
+
+# Other Nodes
+.. tba
+
