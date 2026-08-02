@@ -1,18 +1,20 @@
 import { app } from "/scripts/app.js";
 import { api } from "/scripts/api.js";
+// import from py for names of synced fields, so we don't have to hardcode them here
 
-const SYNCED_FIELDS = ["steps", "cfg", "sampler_name", "scheduler"];
 
 // all
-const NODE_NAMES = ["KSampler_Sync",""]; 
-const NODE_NAME = "KSampler_Sync";
+const KSAMPLER_SYNCED_FIELDS = ["steps", "cfg", "sampler_name", "scheduler"];
+const KSAMPLER_NODE_NAMES = ["KSampler_Sync",""]; 
+const KSAMPLER_NODE_NAME = "KSampler_Sync";
+const KSAMPLER_SYNC_WIDGET_NAME = "enable_sync";  
 
 app.registerExtension({
   name: "ksampler.checkpoint.sync",
 
   async nodeCreated(node) {
-    if (node.comfyClass !== NODE_NAME) return;
-    const syncWidget = node.widgets.find((w) => w.name === "enable_sync");
+    if (node.comfyClass !== KSAMPLER_NODE_NAME) return;
+    const syncWidget = node.widgets.find((w) => w.name === KSAMPLER_SYNC_WIDGET_NAME);
     if (!syncWidget) return;
 
     const originalCallback = syncWidget.callback;
@@ -29,12 +31,12 @@ app.registerExtension({
       const { settings } = event.detail;
 
       for (const node of app.graph.nodes) {
-        if (node.comfyClass !== NODE_NAME) continue;
+        if (node.comfyClass !== KSAMPLER_NODE_NAME) continue;
 
-        const syncWidget = node.widgets.find((w) => w.name === "enable_sync");
+        const syncWidget = node.widgets.find((w) => w.name === KSAMPLER_SYNC_WIDGET_NAME);
         if (!syncWidget || syncWidget.value !== true) continue; // skip unchecked nodes
 
-        SYNCED_FIELDS.forEach((fieldName) => {
+        KSAMPLER_SYNCED_FIELDS.forEach((fieldName) => {
           const widget = node.widgets.find((w) => w.name === fieldName);
           if (widget && settings[fieldName] !== undefined) {
             widget.value = settings[fieldName];

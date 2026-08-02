@@ -29,29 +29,6 @@ import folder_paths
 import comfy.samplers
 import comfy.sd
 
-# Enable second improvement, disable following if else
-# Prioritize matching by name first, then by hash. This allows users to retrieve settings
-#    if ckpt_name and ckpt_name in data:
-#        entry = data[ckpt_name]
-#        matched_by = "name"
-#    else:
-#        file_hash = compute_hash(ckpt_path) if ckpt_path else None
-#        for v in data.values():
-#            if v.get("hash") == file_hash:
-#                # Key = ckpt_name # rename key to ckpt_name for consistency, but still match by hash
-#                entry = v
-#                matched_by = "hash"
-#                break
-#    if file_hash and file_hash in data:
-#        entry = data[file_hash]
-#        matched_by = "hash"
-#    else:
-#        for v in data.values():
-#            if v.get("name") == ckpt_name:
-#                entry = v
-#                matched_by = "name"
-#                break
-
 # ---------------- Checkpoint_w_Settings Node ----------------
 #region Settings ckpt
 class Checkpoint_w_Settings:
@@ -64,7 +41,7 @@ class Checkpoint_w_Settings:
                 "cfg": ("FLOAT", {"default": 7.0, "min": 0.0, "max": 30.0, "step": 0.1}),
                 "sampler_name": (comfy.samplers.KSampler.SAMPLERS,),
                 "scheduler": (comfy.samplers.KSampler.SCHEDULERS,),
-                "positive quality Prompt": ("STRING", {
+                "positive_quality_Prompt": ("STRING", {
                     "multiline": True, 
                     "default": "best Quality, masterpiece, realistic, high quality, 8k, ultra-detailed",
                     "tooltip": (
@@ -73,7 +50,7 @@ class Checkpoint_w_Settings:
                         "no wildcards or random lines from files yet."
                     )
                 }),
-                "negative quality Prompt": ("STRING", {
+                "negative_quality_Prompt": ("STRING", {
                     "multiline": True, 
                     "default": "worst quality, low quality, blurry, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, jpeg artifacts",
                     "tooltip": (
@@ -86,11 +63,11 @@ class Checkpoint_w_Settings:
         }
 
     RETURN_TYPES = ("MODEL", "CLIP", "VAE", "INT", "FLOAT", "STRING", "STRING", "STRING", "STRING", "STRING", "STRING", "STRING")
-    RETURN_NAMES = ("model", "clip", "vae", "steps", "cfg", "sampler_name", "scheduler", "positive quality Prompt", "negative quality Prompt", "ckpt_name","ckpt_path","ckpt_rel_path")
+    RETURN_NAMES = ("model", "clip", "vae", "steps", "cfg", "sampler_name", "scheduler", "positive_quality_Prompt", "negative_quality_Prompt", "ckpt_name","ckpt_path","ckpt_rel_path")
     FUNCTION = "load"
     CATEGORY = "loaders/settings"
 
-    def load(self, ckpt_name, steps, cfg, sampler_name, scheduler, posP, negP):
+    def load(self, ckpt_name, steps, cfg, sampler_name, scheduler, positive_quality_Prompt, negative_quality_Prompt):
         ckpt_path = folder_paths.get_full_path("checkpoints", ckpt_name)
         out = comfy.sd.load_checkpoint_guess_config(
             ckpt_path,
@@ -99,7 +76,9 @@ class Checkpoint_w_Settings:
             embedding_directory=folder_paths.get_folder_paths("embeddings"),
         )
         model, clip, vae = out[:3]
-        return (model, clip, vae, steps, cfg, sampler_name, scheduler, posP, negP, ckpt_name, ckpt_path, ckpt_name)
+        ckpt_rel_path = ckpt_name
+        ckpt_name = ckpt_name.split(os.sep)[-1]  # Ensure only the filename is returned, not the full path
+        return (model, clip, vae, steps, cfg, sampler_name, scheduler, ckpt_name, ckpt_path, ckpt_rel_path, positive_quality_Prompt, negative_quality_Prompt)
 
 
 #NODE_CLASS_MAPPINGS = {"Checkpoint_w_Settings": Checkpoint_w_Settings}
@@ -114,7 +93,7 @@ class Checkpoint_w_prompts:
         return {
             "required": {
                 "ckpt_name": (folder_paths.get_filename_list("checkpoints"),),            
-                "positive quality Prompt": ("STRING", {
+                "positive_quality_Prompt": ("STRING", {
                     "multiline": True, 
                     "default": "best Quality, masterpiece, realistic, high quality, 8k, ultra-detailed",
                     "tooltip": (
@@ -123,7 +102,7 @@ class Checkpoint_w_prompts:
                         "no wildcards or random lines from files yet."
                     )
                 }),
-                "negative quality Prompt": ("STRING", {
+                "negative_quality_Prompt": ("STRING", {
                     "multiline": True, 
                     "default": "worst quality, low quality, blurry, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, jpeg artifacts",
                     "tooltip": (
@@ -136,11 +115,11 @@ class Checkpoint_w_prompts:
         }
 
     RETURN_TYPES = ("MODEL", "CLIP", "VAE", "STRING", "STRING", "STRING", "STRING", "STRING")
-    RETURN_NAMES = ("model", "clip", "vae", "ckpt_name", "ckpt_path", "ckpt_rel_path", "positive quality Prompt", "negative quality Prompt")
+    RETURN_NAMES = ("model", "clip", "vae", "ckpt_name", "ckpt_path", "ckpt_rel_path", "positive_quality_Prompt", "negative_quality_Prompt")
     FUNCTION = "load"
     CATEGORY = "loaders/settings"
 
-    def load(self, ckpt_name, posP, negP):
+    def load(self, ckpt_name, positive_quality_Prompt, negative_quality_Prompt):
         ckpt_path = folder_paths.get_full_path("checkpoints", ckpt_name)
         out = comfy.sd.load_checkpoint_guess_config(
             ckpt_path,
@@ -149,37 +128,49 @@ class Checkpoint_w_prompts:
             embedding_directory=folder_paths.get_folder_paths("embeddings"),
         )
         model, clip, vae = out[:3]
-        return (model, clip, vae, ckpt_name, ckpt_path, ckpt_name, posP, negP)
+        ckpt_rel_path = ckpt_name
+        ckpt_name = ckpt_name.split(os.sep)[-1]  # Ensure only the filename is returned, not the full path
+        return (model, clip, vae, ckpt_name, ckpt_path, ckpt_rel_path, positive_quality_Prompt, negative_quality_Prompt)
 
 #NODE_CLASS_MAPPINGS = {"Checkpoint_w_prompts": Checkpoint_w_prompts}
 #NODE_DISPLAY_NAME_MAPPINGS = {"Checkpoint_w_prompts": "Checkpoint w/ Prompts"}
 #endregion
 #region simple ckpt
-
 class Checkpoint_simple:
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "ckpt_name": (folder_paths.get_filename_list("checkpoints"),),            
-                "positive quality Prompt": ("STRING", {
-                    "multiline": True, 
-                    "default": "best Quality, masterpiece, realistic, high quality, 8k, ultra-detailed",
-                    "tooltip": (
-                        "Positive prompt.\n"
-                        "Supports only strings so far\n"
-                        "no wildcards or random lines from files yet."
-                    )
-                }),
-                "negative quality Prompt": ("STRING", {
-                    "multiline": True, 
-                    "default": "worst quality, low quality, blurry, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, jpeg artifacts",
-                    "tooltip": (
-                        "Negative prompt.\n"
-                        "Supports only strings so far\n"
-                        "no wildcards or random lines from files yet."
-                    )
-                }),
+                "ckpt_name": (folder_paths.get_filename_list("checkpoints"),)
+            }
+        }
+
+    RETURN_TYPES = ("MODEL", "CLIP", "VAE", "STRING", "STRING", "STRING")
+    RETURN_NAMES = ("model", "clip", "vae", "ckpt_name", "ckpt_path", "ckpt_rel_path")
+    FUNCTION = "load"
+    CATEGORY = "loaders/settings"
+
+    def load(self, ckpt_name):
+        ckpt_path = folder_paths.get_full_path("checkpoints", ckpt_name)
+        out = comfy.sd.load_checkpoint_guess_config(
+            ckpt_path,
+            output_vae=True,
+            output_clip=True,
+            embedding_directory=folder_paths.get_folder_paths("embeddings"),
+        )
+        model, clip, vae = out[:3]
+        ckpt_rel_path = ckpt_name
+        ckpt_name = ckpt_name.split(os.sep)[-1]  # Ensure only the filename is returned, not the full path
+        return (model, clip, vae, ckpt_name, ckpt_path, ckpt_rel_path)
+#endregion
+
+#region minimal ckpt
+class Checkpoint_minimal:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "ckpt_name": (folder_paths.get_filename_list("checkpoints"),)            
             }
         }
 
@@ -188,7 +179,7 @@ class Checkpoint_simple:
     FUNCTION = "load"
     CATEGORY = "loaders/settings"
 
-    def load(self, ckpt_name, posP, negP):
+    def load(self, ckpt_name):
         ckpt_path = folder_paths.get_full_path("checkpoints", ckpt_name)
         out = comfy.sd.load_checkpoint_guess_config(
             ckpt_path,
@@ -205,11 +196,13 @@ class Checkpoint_simple:
 NODE_CLASS_MAPPINGS = {
     "Checkpoint_w_Settings": Checkpoint_w_Settings,
     "Checkpoint_w_prompts": Checkpoint_w_prompts,
-    "Checkpoint_simple": Checkpoint_simple
+    "Checkpoint_simple": Checkpoint_simple,
+    "Checkpoint_minimal": Checkpoint_minimal
     }
 NODE_DISPLAY_NAME_MAPPINGS = {
     "Checkpoint_w_Settings": "Checkpoint w/ Settings",
     "Checkpoint_w_prompts": "Checkpoint w/ Prompts",
-    "Checkpoint_simple": "Checkpoint Simple"
+    "Checkpoint_simple": "Checkpoint Simple",
+    "Checkpoint_minimal": "Checkpoint Minimal"
     }
 

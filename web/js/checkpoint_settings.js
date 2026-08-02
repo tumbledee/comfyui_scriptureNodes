@@ -1,5 +1,8 @@
 import { app } from "/scripts/app.js";
 import { api } from "/scripts/api.js";
+//import { Synced_Fields } from "/scripts/ksampler_sync.js";
+// import from py for names of synced fields, so we don't have to hardcode them here
+
 
 // #region Notifications
 // Disable notifications
@@ -14,13 +17,12 @@ function notify(message, isError = false) {
   }
 }
 
-
 // #endregion
-// #region API Calls
+// #region Setting load/save
 const NODE_NAMES = ["Checkpoint_w_Settings","Checkpoint_w_prompts", "Checkpoint_simple"];
 const NODE_NAME = "Checkpoint_w_Settings";
 const TRACKED_FIELDS = ["steps", "cfg", "sampler_name", "scheduler", "positive quality Prompt", "negative quality Prompt", "setting Name"];
-
+const KSAMPLER_NAME = "KSampler_Sync";
 
 app.registerExtension({
   name: "checkpoint.settings.buttons",
@@ -30,7 +32,7 @@ app.registerExtension({
     if (!NODE_NAMES.includes(node.comfyClass)) return;
 
     const getWidget = (name) => node.widgets.find((w) => w.name === name);
-    // #region Settings
+    // #region collect Settings
     const collectSettings = () => {
       const out = {};
       TRACKED_FIELDS.forEach((n) => {
@@ -60,6 +62,22 @@ app.registerExtension({
 
     // Store the current checkpoint name to find the setting data
     const ckptWidget = getWidget("ckpt_name");
+
+    // Safety mechanism to guarantee that a ckpt change is always detected
+    let internalCkptValue = ckptWidget.value;
+    Object.defineProperty(ckptWidget, "value", {
+      get() {
+        return internalCkptValue;
+      },
+      set(newValue) {
+        const changed = newValue !== internalCkptValue;
+        internalCkptValue = newValue;
+        if (changed) {
+          // Fires for ANY change source: user click, workflow load, or LoRA Manager's send action
+          refreshPresetList().then(autoLoadPreset);
+        }
+      },
+    });
 
     // Auto-load the selected preset when the checkpoint changes or when the node is configured
     const autoLoadPreset = async () => {
@@ -126,10 +144,22 @@ app.registerExtension({
         notify("Preset name cannot be empty.", true);
         return;
       }
+
+      // Layer 1: whatever the synced KSampler currently holds
+      const ksamplerSettings = findSyncedKSamplerData(node, KSAMPLER_NAME, "enable_sync");
+      // Layer 2: Quality prompts from Quality nodes
+      //const qualityPrompts = findQualityPrompts(node, "Quality_Sync", "enable_sync");
+      // Layer 3: whatever the checkpoint node itself holds (only relevant fields it actually has)
+      const ownSettings = collectSettings(); // your existing helper, reads this node's own widgets
+
+      // Merge — own settings overwrite ksampler settings on key conflicts
+      // const mergedSettings = { ...ksamplerSettings, ...qualityPrompts, ...ownSettings };
+      const mergedSettings = { ...ksamplerSettings, ...ownSettings };
+
       const res = await fetch("/checkpoint_settings/save", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ckpt_name: ckptWidget.value, preset_name: name, settings: collectSettings() }),
+        body: JSON.stringify({ ckpt_name: ckptWidget.value, preset_name: name, settings: mergedSettings }),
       });
       const data = await res.json();
       if (data.status === "ok") {
@@ -183,3 +213,38 @@ app.registerExtension({
     refreshPresetList().then(autoLoadPreset);
   },
 });
+// ------------------------------------------------------------------------------
+// #region Find Sync Data
+// ------------------------------------------------------------------------------
+// root function
+function findSyncedData(currentCkptNode, nodeName, enableSyncField, retrievefields = ["steps", "cfg", "sampler_name", "scheduler", "positive quality Prompt", "negative quality Prompt"]) {
+  const collected = {};
+
+  for (const node of app.graph.nodes) {
+    if (node.comfyClass !== nodeName) continue;
+
+    const syncWidget = node.widgets.find((w) => w.name === enableSyncField);
+    if (!syncWidget || syncWidget.value !== true) continue; // only pull from synced nodes
+
+    retrievefields.forEach((fieldName) => {
+      const widget = node.widgets.find((w) => w.name === fieldName);
+      if (widget) collected[fieldName] = widget.value;
+    });
+
+    break; // stop at the first synced KSampler found; remove this line to merge multiple
+  }
+
+  return collected;
+}
+// KSampler-specific wrapper
+function findSyncedKSamplerData(currentCkptNode, KSamplerNodeName, enableSyncField) {
+  const ksamplerFields = ["steps", "cfg", "sampler_name", "scheduler"];
+  const collected = {};
+  return findSyncedData(currentCkptNode, KSamplerNodeName, enableSyncField, ksamplerFields);
+}
+// Quality-specific wrapper
+function findQualityPrompts(currentCkptNode, QualityNodeName, enableSyncField) {
+  const qualityFields = ["positive quality Prompt", "negative quality Prompt"];
+  return findSyncedData(currentCkptNode, QualityNodeName, enableSyncField, qualityFields);
+}
+// #endregion
