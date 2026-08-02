@@ -14,23 +14,26 @@ function notify(message, isError = false) {
   }
 }
 
+
 // #endregion
 // #region API Calls
-const NODE_NAMES = ["Checkpoint_w_Settings"];
+const NODE_NAMES = ["Checkpoint_w_Settings","Checkpoint_w_prompts", "Checkpoint_simple"];
 const NODE_NAME = "Checkpoint_w_Settings";
+const TRACKED_FIELDS = ["steps", "cfg", "sampler_name", "scheduler", "positive quality Prompt", "negative quality Prompt", "setting Name"];
+
 
 app.registerExtension({
   name: "checkpoint.settings.buttons",
 
   async nodeCreated(node) {
-    if (node.comfyClass !== NODE_NAME) return;
+    //if (node.comfyClass !== NODE_NAME) return;
+    if (!NODE_NAMES.includes(node.comfyClass)) return;
 
     const getWidget = (name) => node.widgets.find((w) => w.name === name);
-    const trackedFields = ["steps", "cfg", "sampler_name", "scheduler", "positive Prompt", "negative Prompt", "setting Name"];
     // #region Settings
     const collectSettings = () => {
       const out = {};
-      trackedFields.forEach((n) => {
+      TRACKED_FIELDS.forEach((n) => {
         const w = getWidget(n);
         if (w) out[n] = w.value;
       });

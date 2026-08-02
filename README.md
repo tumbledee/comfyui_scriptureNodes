@@ -24,7 +24,7 @@ Unchecking the sync button prevents the node from syncing
 - New only checkpoint data save load 
 - Checkpoint save load with Pipe support
 - Checkpoints with Lora Manager support
-- Loading applies automatically when preset is changed or checkpoint is placed
+- ~~Loading applies automatically when preset is changed or checkpoint is placed~~
 - Enable Ksampler save settings Currently only the data on the checkpoint is saved.
 
 
