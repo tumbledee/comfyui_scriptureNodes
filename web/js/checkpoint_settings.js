@@ -1,5 +1,8 @@
 import { app } from "/scripts/app.js";
 import { api } from "/scripts/api.js";
+//import { Synced_Fields } from "/scripts/ksampler_sync.js";
+// import from py for names of synced fields, so we don't have to hardcode them here
+
 
 // #region Notifications
 // Disable notifications
@@ -15,20 +18,24 @@ function notify(message, isError = false) {
 }
 
 // #endregion
-// #region API Calls
+// #region Setting load/save
+const NODE_NAMES = ["Checkpoint_w_Settings","Checkpoint_w_prompts", "Checkpoint_simple"];
+const NODE_NAME = "Checkpoint_w_Settings";
+const TRACKED_FIELDS = ["steps", "cfg", "sampler_name", "scheduler", "positive quality Prompt", "negative quality Prompt", "setting Name"];
+const KSAMPLER_NAME = "KSampler_Sync";
 
 app.registerExtension({
   name: "checkpoint.settings.buttons",
 
   async nodeCreated(node) {
-    if (node.comfyClass !== "CheckpointLoaderWithSettings") return;
+    //if (node.comfyClass !== NODE_NAME) return;
+    if (!NODE_NAMES.includes(node.comfyClass)) return;
 
     const getWidget = (name) => node.widgets.find((w) => w.name === name);
-    const trackedFields = ["steps", "cfg", "sampler_name", "scheduler", "positive Prompt", "negative Prompt", "setting Name"];
-    // #region Settings
+    // #region collect Settings
     const collectSettings = () => {
       const out = {};
-      trackedFields.forEach((n) => {
+      TRACKED_FIELDS.forEach((n) => {
         const w = getWidget(n);
         if (w) out[n] = w.value;
       });
@@ -53,8 +60,47 @@ app.registerExtension({
     // Dropdown ("toggle list") of existing presets for the current checkpoint
     const presetSelectWidget = node.addWidget("combo", "preset_select", "", () => {}, { values: [] });
 
+    // Store the current checkpoint name to find the setting data
+    const ckptWidget = getWidget("ckpt_name");
+
+    // Safety mechanism to guarantee that a ckpt change is always detected
+    let internalCkptValue = ckptWidget.value;
+    Object.defineProperty(ckptWidget, "value", {
+      get() {
+        return internalCkptValue;
+      },
+      set(newValue) {
+        const changed = newValue !== internalCkptValue;
+        internalCkptValue = newValue;
+        if (changed) {
+          // Fires for ANY change source: user click, workflow load, or LoRA Manager's send action
+          refreshPresetList().then(autoLoadPreset);
+        }
+      },
+    });
+
+    // Auto-load the selected preset when the checkpoint changes or when the node is configured
+    const autoLoadPreset = async () => {
+      const presetName = presetSelectWidget.value;
+      if (!presetName) return;  // if no presets exist for this checkpoint yet
+      const res = await fetch("/checkpoint_settings/load", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ckpt_name: ckptWidget.value, preset_name: presetName }),
+      });
+      const data = await res.json();
+      if (data.status === "ok") {
+        applySettings(data.settings);
+        // Event for Ksampler
+        api.dispatchEvent(new CustomEvent("checkpoint_settings.loaded", {
+          detail: { ckpt_name: ckptWidget.value, settings: data.settings },
+        }));
+        notify(`Preset "${presetName}" auto-loaded.`);
+      }
+    };
+
+    // refreshes the preset dropdown list based on the current checkpoint selection
     const refreshPresetList = async () => {
-      const ckptWidget = getWidget("ckpt_name");
       const res = await fetch("/checkpoint_settings/list", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -63,19 +109,33 @@ app.registerExtension({
       const data = await res.json();
       const presets = data.presets || [];
       presetSelectWidget.options.values = presets;
-      presetSelectWidget.value = presets.includes(presetSelectWidget.value) ? presetSelectWidget.value : (presets[0] || "");
+
+      // Keep current selection if still valid, else fall back to first available preset
+      if (!presets.includes(presetSelectWidget.value)) {
+        presetSelectWidget.value = presets[0] || "";
+      }
       node.setDirtyCanvas(true, true);
     };
-    // Refresh dropdown whenever the checkpoint dropdown itself changes
-    const ckptWidget = getWidget("ckpt_name");
+    // #endregion
+    // ------------------------------------------------------------------------------
+    // #region Load Settings Auto
+    // ------------------------------------------------------------------------------
+    // Load Settings Refresh dropdown whenever the checkpoint dropdown itself changes
     const originalCallback = ckptWidget.callback;
     ckptWidget.callback = function (...args) {
       if (originalCallback) originalCallback.apply(this, args);
-      refreshPresetList();
+      refreshPresetList().then(autoLoadPreset); // auto-load the first preset if available
+    };
+
+    // Auto-load whenever the preset dropdown itself changes
+    const originalPresetCallback = presetSelectWidget.callback;
+    presetSelectWidget.callback = function (...args) {
+      if (originalPresetCallback) originalPresetCallback.apply(this, args);
+      autoLoadPreset();
     };
 
     //#endregion    
-    //------------------------------------------------------------------------------
+
     // #region Buttons
     //------------------------------------------------------------------------------
     node.addWidget("button", "💾 Save Preset", null, async () => {
@@ -84,10 +144,22 @@ app.registerExtension({
         notify("Preset name cannot be empty.", true);
         return;
       }
+
+      // Layer 1: whatever the synced KSampler currently holds
+      const ksamplerSettings = findSyncedKSamplerData(node, KSAMPLER_NAME, "enable_sync");
+      // Layer 2: Quality prompts from Quality nodes
+      //const qualityPrompts = findQualityPrompts(node, "Quality_Sync", "enable_sync");
+      // Layer 3: whatever the checkpoint node itself holds (only relevant fields it actually has)
+      const ownSettings = collectSettings(); // your existing helper, reads this node's own widgets
+
+      // Merge — own settings overwrite ksampler settings on key conflicts
+      // const mergedSettings = { ...ksamplerSettings, ...qualityPrompts, ...ownSettings };
+      const mergedSettings = { ...ksamplerSettings, ...ownSettings };
+
       const res = await fetch("/checkpoint_settings/save", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ckpt_name: ckptWidget.value, preset_name: name, settings: collectSettings() }),
+        body: JSON.stringify({ ckpt_name: ckptWidget.value, preset_name: name, settings: mergedSettings }),
       });
       const data = await res.json();
       if (data.status === "ok") {
@@ -98,31 +170,81 @@ app.registerExtension({
         notify("Save failed: " + data.error, true);
       }
     });
-    node.addWidget("button", "📂 Load Preset", null, async () => {
-      const name = presetSelectWidget.value;
-      if (!name) {
-        notify("No preset selected.", true);
-        return;
-      }
-      const res = await fetch("/checkpoint_settings/load", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ckpt_name: ckptWidget.value, preset_name: name }),
+    // -------------- Load button is obsolete now -------------
+    //
+    // node.addWidget("button", "📂 Load Preset", null, async () => {
+    //   const name = presetSelectWidget.value;
+    //   if (!name) {
+    //     notify("No preset selected.", true);
+    //     return;
+    //   }
+    //   const res = await fetch("/checkpoint_settings/load", {
+    //     method: "POST",
+    //     headers: { "Content-Type": "application/json" },
+    //     body: JSON.stringify({ ckpt_name: ckptWidget.value, preset_name: name }),
+    //   });
+    //   const data = await res.json();
+    //   if (data.status === "ok") {
+    //     applySettings(data.settings);
+    //     // Event for Ksampler
+    //     api.dispatchEvent(new CustomEvent("checkpoint_settings.loaded", {
+    //       detail: { ckpt_name: ckptWidget.value, settings: data.settings },
+    //     }));
+    //     notify(`Preset "${name}" loaded.`);
+    //   } else {
+    //     notify("Load failed: " + data.error, true);
+    //   }
+    // });
+
+        //------------------------------------------------------------------------------
+    // #region reload presets on node configure 
+    const origOnConfigure = node.onConfigure;
+    node.onConfigure = function (info) {
+      const result = origOnConfigure ? origOnConfigure.apply(this, arguments) : undefined;
+      // Widget values are already restored at this point, so ckptWidget.value is correct
+      refreshPresetList().then(() => {
+        autoLoadPreset();
       });
-      const data = await res.json();
-      if (data.status === "ok") {
-        applySettings(data.settings);
-        // Event for Ksampler
-        api.dispatchEvent(new CustomEvent("checkpoint_settings.loaded", {
-          detail: { ckpt_name: ckptWidget.value, settings: data.settings },
-        }));
-        notify(`Preset "${name}" loaded.`);
-      } else {
-        notify("Load failed: " + data.error, true);
-      }
-    });
+      return result;
+    };
+    // #endregion
 
-
-    refreshPresetList();
+    // Initial population for freshly-added nodes (not from a saved workflow
+    refreshPresetList().then(autoLoadPreset);
   },
 });
+// ------------------------------------------------------------------------------
+// #region Find Sync Data
+// ------------------------------------------------------------------------------
+// root function
+function findSyncedData(currentCkptNode, nodeName, enableSyncField, retrievefields = ["steps", "cfg", "sampler_name", "scheduler", "positive quality Prompt", "negative quality Prompt"]) {
+  const collected = {};
+
+  for (const node of app.graph.nodes) {
+    if (node.comfyClass !== nodeName) continue;
+
+    const syncWidget = node.widgets.find((w) => w.name === enableSyncField);
+    if (!syncWidget || syncWidget.value !== true) continue; // only pull from synced nodes
+
+    retrievefields.forEach((fieldName) => {
+      const widget = node.widgets.find((w) => w.name === fieldName);
+      if (widget) collected[fieldName] = widget.value;
+    });
+
+    break; // stop at the first synced KSampler found; remove this line to merge multiple
+  }
+
+  return collected;
+}
+// KSampler-specific wrapper
+function findSyncedKSamplerData(currentCkptNode, KSamplerNodeName, enableSyncField) {
+  const ksamplerFields = ["steps", "cfg", "sampler_name", "scheduler"];
+  const collected = {};
+  return findSyncedData(currentCkptNode, KSamplerNodeName, enableSyncField, ksamplerFields);
+}
+// Quality-specific wrapper
+function findQualityPrompts(currentCkptNode, QualityNodeName, enableSyncField) {
+  const qualityFields = ["positive quality Prompt", "negative quality Prompt"];
+  return findSyncedData(currentCkptNode, QualityNodeName, enableSyncField, qualityFields);
+}
+// #endregion
