@@ -19,7 +19,7 @@ function notify(message, isError = false) {
 
 // #endregion
 // #region Setting load/save
-const NODE_NAMES = ["Checkpoint_w_Settings","Checkpoint_w_prompts", "Checkpoint_simple"];
+const NODE_NAMES = ["Checkpoint_w_Settings","Checkpoint_w_prompts", "Checkpoint_KSampler_Piped", "Checkpoint_simple", "Checkpoint_minimal"];
 const NODE_NAME = "Checkpoint_w_Settings";
 const TRACKED_FIELDS = ["steps", "cfg", "sampler_name", "scheduler", "positive quality Prompt", "negative quality Prompt", "setting Name"];
 const KSAMPLER_NAME = "KSampler_Sync";

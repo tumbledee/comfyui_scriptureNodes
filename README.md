@@ -15,17 +15,20 @@ To load the settings for a specific checkpoint, just select the checkpoint, and 
 ## Checkpoint /w settings
 this node is a regular Checkpoint with additional Ksampler settings to unify the settings onto one node.
 
+## Checkpoint Pipe
+seed and latents need to be placed somewhere else at it reapplies the checkpoint with each change
+
 ## KSampler Sync
 When loading settings of the checkpoint this node applies the Ksampler settings automatically without wiring.
 Unchecking the sync button prevents the node from syncing
 
 
 ## Future Sampler features:
-- New only checkpoint data save load 
-- Checkpoint save load with Pipe support
-- Checkpoints with Lora Manager support
+- ~~New only checkpoint data save load ~~
+- ~~Checkpoint save load with Pipe support~~
+- ~~Checkpoints with Lora Manager support~~
 - ~~Loading applies automatically when preset is changed or checkpoint is placed~~
-- Enable Ksampler save settings Currently only the data on the checkpoint is saved.
+- ~~Enable Ksampler save settings Currently only the data on the checkpoint is saved.~~
 
 
 # Scrolls
