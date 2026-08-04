@@ -21,7 +21,7 @@ function notify(message, isError = false) {
 // #region Setting load/save
 const NODE_NAMES = ["Checkpoint_w_Settings","Checkpoint_w_prompts", "Checkpoint_KSampler_Piped", "Checkpoint_simple", "Checkpoint_minimal"];
 const NODE_NAME = "Checkpoint_w_Settings";
-const TRACKED_FIELDS = ["steps", "cfg", "sampler_name", "scheduler", "positive quality Prompt", "negative quality Prompt", "setting Name"];
+const TRACKED_FIELDS = ["steps", "cfg", "sampler_name", "scheduler", "positive_quality_Prompt", "negative_quality_Prompt"];
 const KSAMPLER_NAME = "KSampler_Sync";
 
 app.registerExtension({
@@ -36,8 +36,8 @@ app.registerExtension({
     const collectSettings = () => {
       const out = {};
       TRACKED_FIELDS.forEach((n) => {
-        const w = getWidget(n);
-        if (w) out[n] = w.value;
+        const what = getWidget(n);
+        if (what) out[n] = what.value;
       });
       return out;
     };
@@ -217,7 +217,7 @@ app.registerExtension({
 // #region Find Sync Data
 // ------------------------------------------------------------------------------
 // root function
-function findSyncedData(currentCkptNode, nodeName, enableSyncField, retrievefields = ["steps", "cfg", "sampler_name", "scheduler", "positive quality Prompt", "negative quality Prompt"]) {
+function findSyncedData(currentCkptNode, nodeName, enableSyncField, retrievefields = ["steps", "cfg", "sampler_name", "scheduler", "positive_quality_Prompt", "negative_quality_Prompt"]) {
   const collected = {};
 
   for (const node of app.graph.nodes) {
@@ -244,7 +244,7 @@ function findSyncedKSamplerData(currentCkptNode, KSamplerNodeName, enableSyncFie
 }
 // Quality-specific wrapper
 function findQualityPrompts(currentCkptNode, QualityNodeName, enableSyncField) {
-  const qualityFields = ["positive quality Prompt", "negative quality Prompt"];
+  const qualityFields = ["positive_quality_Prompt", "negative_quality_Prompt"];
   return findSyncedData(currentCkptNode, QualityNodeName, enableSyncField, qualityFields);
 }
 // #endregion
