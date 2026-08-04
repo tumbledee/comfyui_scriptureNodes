@@ -86,10 +86,6 @@ class Checkpoint_KSampler_Piped:
                 "cfg": ("FLOAT", {"default": 7.0, "min": 0.0, "max": 30.0, "step": 0.1}),
                 "sampler_name": (comfy.samplers.KSampler.SAMPLERS,),
                 "scheduler": (comfy.samplers.KSampler.SCHEDULERS,),
-                "resolution": ("INT", {"default": 512, "min": 64, "max": 4095}),
-                "aspect_ratio": (list(img_latent_syntax.ASPECT_RATIOS.keys()), {"default": "1:1 (Square)"}),
-                "custom_width_scale": ("FLOAT", {"default": 1.0, "min": 0.01, "max": 100.0, "step": 0.01}),
-                "custom_height_scale": ("FLOAT", {"default": 1.0, "min": 0.01, "max": 100.0, "step": 0.01}),
                 "positive_quality_Prompt": ("STRING", {
                     "multiline": True, 
                     "default": "best Quality, masterpiece, realistic, high quality, 8k, ultra-detailed",
@@ -107,8 +103,7 @@ class Checkpoint_KSampler_Piped:
                         "Supports only strings so far\n"
                         "no wildcards or random lines from files yet."
                     )
-                }),
-                "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff})
+                })
             }
         }
 
@@ -129,9 +124,6 @@ class Checkpoint_KSampler_Piped:
         ckpt_rel_path = ckpt_name
         ckpt_name = ckpt_name.split(os.sep)[-1]  # Ensure only the filename is returned, not the full path
 
-        width, height = img_latent_syntax.calculate_dimensions(resolution, aspect_ratio)
-        latent_dict = img_latent_syntax.latent_simple(width, height)
-
         text_encoder = comfy_nodes.CLIPTextEncode()
         (positive_cond,) = text_encoder.encode(clip, positive_quality_Prompt)
         (negative_cond,) = text_encoder.encode(clip, negative_quality_Prompt)
@@ -144,8 +136,8 @@ class Checkpoint_KSampler_Piped:
             "positive_str": positive_quality_Prompt,
             "negative": negative_cond,
             "negative_str": negative_quality_Prompt,
-            "latent": latent_dict,
-            "seed": seed,
+            "latent": None,
+            "seed": None,
             "steps": steps,
             "cfg": cfg,
             "sampler_name": sampler_name,
