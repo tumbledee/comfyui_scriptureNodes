@@ -1,15 +1,22 @@
 import { app } from "/scripts/app.js";
 import { api } from "/scripts/api.js";
+import { maybeAutoBackup } from "./backup_settings.js";
 //import { Synced_Fields } from "/scripts/ksampler_sync.js";
 // import from py for names of synced fields, so we don't have to hardcode them here
 
+/**
+ * - Save Load interaction
+ * - Settings collection
+ * - Preset Management
+ * - Find Sync data for Ksampler
+ */
 
 // #region Notifications
 // Disable notifications
 const SHOW_NOTIFICATIONS = false; // set to true to re-enable toast pop-ups
 
 function notify(message, isError = false) {
-  if (!SHOW_NOTIFICATIONS) return;
+  if (!SHOW_NOTIFICATIONS || !message.includes("Delete")) return;
   if (isError) {
     app.extensionManager.toast.addAlert(message);
   } else {
@@ -19,9 +26,9 @@ function notify(message, isError = false) {
 
 // #endregion
 // #region Setting load/save
-const NODE_NAMES = ["Checkpoint_w_Settings","Checkpoint_w_prompts", "Checkpoint_simple"];
+const NODE_NAMES = ["Checkpoint_w_Settings","Checkpoint_w_prompts", "Checkpoint_KSampler_Piped", "Checkpoint_simple", "Checkpoint_minimal"];
 const NODE_NAME = "Checkpoint_w_Settings";
-const TRACKED_FIELDS = ["steps", "cfg", "sampler_name", "scheduler", "positive quality Prompt", "negative quality Prompt", "setting Name"];
+const TRACKED_FIELDS = ["steps", "cfg", "sampler_name", "scheduler", "positive_quality_Prompt", "negative_quality_Prompt"];
 const KSAMPLER_NAME = "KSampler_Sync";
 
 app.registerExtension({
@@ -36,20 +43,37 @@ app.registerExtension({
     const collectSettings = () => {
       const out = {};
       TRACKED_FIELDS.forEach((n) => {
-        const w = getWidget(n);
-        if (w) out[n] = w.value;
+        const what = getWidget(n);
+        if (what) out[n] = what.value;
       });
       return out;
     };
     // #endregion
     // #region Apply Settings
     const applySettings = (settings) => {
-      Object.entries(settings).forEach(([k, v]) => {
-        const w = getWidget(k);
-        if (w) w.value = v;
+      Object.entries(settings).forEach(([key, value]) => {
+        const what = getWidget(key);
+        if (what) what.value = value;
       });
       node.setDirtyCanvas(true, true);
     };
+
+    const broadcastCurrentSettings = () => {
+      api.dispatchEvent(new CustomEvent("checkpoint_settings.loaded", {
+        detail: { ckpt_name: ckptWidget.value, settings: collectSettings() },
+      }));
+    };
+
+    TRACKED_FIELDS.forEach((fieldName) => {
+      const widget = getWidget(fieldName);
+      if (!widget) return;
+
+      const originalCallback = widget.callback;
+      widget.callback = function (...args) {
+        if (originalCallback) originalCallback.apply(this, args);
+        broadcastCurrentSettings();
+      };
+    });
     // #endregion
     //------------------------------------------------------------------------------
     // #region Preset Management
@@ -91,6 +115,7 @@ app.registerExtension({
       const data = await res.json();
       if (data.status === "ok") {
         applySettings(data.settings);
+        presetNameWidget.value = presetName;
         // Event for Ksampler
         api.dispatchEvent(new CustomEvent("checkpoint_settings.loaded", {
           detail: { ckpt_name: ckptWidget.value, settings: data.settings },
@@ -109,7 +134,7 @@ app.registerExtension({
       const data = await res.json();
       const presets = data.presets || [];
       presetSelectWidget.options.values = presets;
-
+      
       // Keep current selection if still valid, else fall back to first available preset
       if (!presets.includes(presetSelectWidget.value)) {
         presetSelectWidget.value = presets[0] || "";
@@ -139,10 +164,29 @@ app.registerExtension({
     // #region Buttons
     //------------------------------------------------------------------------------
     node.addWidget("button", "💾 Save Preset", null, async () => {
-      const name = (presetNameWidget.value || "").trim();
-      if (!name) {
-        notify("Preset name cannot be empty.", true);
-        return;
+      const typedname = (presetNameWidget.value || "").trim();
+      const selectedPresetName = presetSelectWidget.value;
+
+      if (!typedname) {
+        if(!selectedPresetName){
+          notify("Preset name cannot be empty.", true);
+          return;
+        }
+        if (!confirm(`Delete preset "${selectedPresetName}"? This cannot be undone.`)) return;
+        // Delete Preset
+        const res = await fetch("/checkpoint_settings/delete_preset", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ckpt_name: ckptWidget.value, preset_name: selectedPresetName }),
+        });
+        const data = await res.json();
+        if (data.status === "ok") {
+          await refreshPresetList();
+          autoLoadPreset();
+          notify(`Preset "${data.deleted}" deleted.`);
+        } else {
+          notify("Delete failed: " + data.error, true);
+        }
       }
 
       // Layer 1: whatever the synced KSampler currently holds
@@ -159,13 +203,14 @@ app.registerExtension({
       const res = await fetch("/checkpoint_settings/save", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ckpt_name: ckptWidget.value, preset_name: name, settings: mergedSettings }),
+        body: JSON.stringify({ ckpt_name: ckptWidget.value, preset_name: typedname, settings: mergedSettings }),
       });
       const data = await res.json();
       if (data.status === "ok") {
         await refreshPresetList();
-        presetSelectWidget.value = name;
-        notify(`Preset "${name}" saved.`);
+        presetSelectWidget.value = typedname;
+        notify(`Preset "${typedname}" saved.`);
+        maybeAutoBackup(); // backup_settings.js
       } else {
         notify("Save failed: " + data.error, true);
       }
@@ -217,7 +262,7 @@ app.registerExtension({
 // #region Find Sync Data
 // ------------------------------------------------------------------------------
 // root function
-function findSyncedData(currentCkptNode, nodeName, enableSyncField, retrievefields = ["steps", "cfg", "sampler_name", "scheduler", "positive quality Prompt", "negative quality Prompt"]) {
+function findSyncedData(currentCkptNode, nodeName, enableSyncField, retrievefields = ["steps", "cfg", "sampler_name", "scheduler", "positive_quality_Prompt", "negative_quality_Prompt"]) {
   const collected = {};
 
   for (const node of app.graph.nodes) {
@@ -244,7 +289,7 @@ function findSyncedKSamplerData(currentCkptNode, KSamplerNodeName, enableSyncFie
 }
 // Quality-specific wrapper
 function findQualityPrompts(currentCkptNode, QualityNodeName, enableSyncField) {
-  const qualityFields = ["positive quality Prompt", "negative quality Prompt"];
+  const qualityFields = ["positive_quality_Prompt", "negative_quality_Prompt"];
   return findSyncedData(currentCkptNode, QualityNodeName, enableSyncField, qualityFields);
 }
 // #endregion
