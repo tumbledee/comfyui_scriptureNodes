@@ -3,6 +3,10 @@ import { api } from "/scripts/api.js";
 // import from py for names of synced fields, so we don't have to hardcode them here
 
 
+/** 
+ * - Event Handler for Ksampler
+*/
+
 // all
 const KSAMPLER_SYNCED_FIELDS = ["steps", "cfg", "sampler_name", "scheduler"];
 const KSAMPLER_NODE_NAMES = ["KSampler_Sync",""]; 

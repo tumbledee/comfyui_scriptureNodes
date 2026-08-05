@@ -117,11 +117,69 @@ class Scroll_of_Character:
         # ── SAVE to file ──────────────────────────────────────────────────────
 
 
+
+
+class Scroll_of_Character_Simplified:
+    """
+    Assembles a character definition dictionary and optionally
+    saves to / loads from a JSON file.
+    """
+
+    CATEGORY = "Scrolls"
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "identifier": ("STRING", {"default": "char_01", "multiline": False}),
+                "gender": (["female", "male", "other"], {}),
+                "count": ("INT", {"default": 1, "min": 1, "max": 20}),
+            },
+            "optional": {
+                "character": ("STRING", {"default": "", "multiline": True,
+                    "tooltip": "Character name, known character, or LoRA trigger"}),
+                "save_file_path": ("STRING", {"default": "",
+                    "tooltip": "Full path to save character JSON. Leave empty to skip."}),
+                "load_file_path": ("STRING", {"default": "",
+                    "tooltip": "Full path to load character JSON. Overrides all inputs above if set."}),
+            }
+        }
+
+    RETURN_TYPES = ("CHARACTER", "STRING")
+    RETURN_NAMES = ("character_connector", "character_preview")
+    FUNCTION = "build_character"
+
+
+    def build_character(
+        self,
+        identifier,
+        gender,
+        count,
+        character="",
+        save_file_path="",
+        load_file_path="",
+    ):
+        # ── LOAD from file (overrides all widget inputs) ──────────────────────
+
+
+        # ── BUILD dictionary from widget inputs ───────────────────────────────
+        char_dict = {
+            "identifier":          identifier,
+            "gender":              gender,
+            "count":               count,
+            "character":           character,
+        }
+
+        # ── SAVE to file ──────────────────────────────────────────────────────
+
+
 # ── Registration ───────────────────────────────────────────────────────────────
 NODE_CLASS_MAPPINGS = {
     "scroll_of_character": Scroll_of_Character,
+    "scroll_of_character_simplified": Scroll_of_Character_Simplified,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
     "scroll_of_character": "Scroll of Character 🎭",
+    "scroll_of_character_simplified": "Scroll of Character Simplified 🎭",
 }
