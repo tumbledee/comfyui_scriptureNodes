@@ -15,14 +15,13 @@ from .scrolls.Scroll_of_Beauty              import NODE_CLASS_MAPPINGS as D, NOD
 from .scrolls.Scroll_of_Stories             import NODE_CLASS_MAPPINGS as E, NODE_DISPLAY_NAME_MAPPINGS as E2
 from .scrolls.Scroll_of_Quality             import NODE_CLASS_MAPPINGS as F, NODE_DISPLAY_NAME_MAPPINGS as F2
 from .scrolls.Scroll_of_Binding             import NODE_CLASS_MAPPINGS as G, NODE_DISPLAY_NAME_MAPPINGS as G2
-from .backend import api  # importing this runs api.py, which registers the routes
+from .backend import api
 
 
 NODE_CLASS_MAPPINGS        = {**ckptSL, **ksmpSL, **latent, **A, **B, **C, **D, **E, **F, **G}
 NODE_DISPLAY_NAME_MAPPINGS = {**ckptSL2, **ksmpSL2, **latent2, **A2, **B2, **C2, **D2, **E2, **F2, **G2}
 
 
-# At the bottom of your __init__.py, after all NODE_CLASS_MAPPINGS merges:
 WEB_DIRECTORY = "./web/js"
 
 __all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS", "WEB_DIRECTORY"]

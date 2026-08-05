@@ -142,7 +142,7 @@ app.registerExtension({
         app.ui.settings.addSetting({
             id:           KEY_ROOT_DIR,
             name:         "🗂 Root Directory",
-            category:     ["AntiPyrus Settings", "Paths", "Root Directory"],
+            category:     ["Calibrate Inscriptions", "Paths", "Root Directory"],
             type:         "text",
             defaultValue: "",
             tooltip:      "Root folder for wildcards, text files and saved characters. " +
@@ -153,7 +153,7 @@ app.registerExtension({
         app.ui.settings.addSetting({
             id:           KEY_SETUP_BTN,
             name:         "📁 Setup Folder Layout",
-            category:     ["AntiPyrus Settings", "Paths", "Setup"],
+            category:     ["Calibrate Inscriptions", "Paths", "Setup"],
             defaultValue: null,
             type:         (name, setter, value, attrs) => {
                 const wrapper = document.createElement("div");
@@ -207,7 +207,7 @@ app.registerExtension({
         app.ui.settings.addSetting({
             id:           KEY_SEG_ORDER_POS,
             name:         "🟢 Positive Prompt Segment Order",
-            category:     ["AntiPyrus Settings", "Segment Order", "Positive"],
+            category:     ["Calibrate Inscriptions", "Segment Order", "Positive"],
             defaultValue: DEFAULT_POSITIVE_SEGMENTS,
             tooltip:      "Drag to reorder, toggle to enable/disable each section in the final positive prompt.",
             type:         (name, setter, value) => {
@@ -219,7 +219,7 @@ app.registerExtension({
         app.ui.settings.addSetting({
             id:           KEY_SEG_ORDER_NEG,
             name:         "🔴 Negative Prompt Segment Order",
-            category:     ["AntiPyrus Settings", "Segment Order", "Negative"],
+            category:     ["Calibrate Inscriptions", "Segment Order", "Negative"],
             defaultValue: DEFAULT_NEGATIVE_SEGMENTS,
             tooltip:      "Drag to reorder, toggle to enable/disable each section in the final negative prompt.",
             type:         (name, setter, value) => {
@@ -231,7 +231,7 @@ app.registerExtension({
         app.ui.settings.addSetting({
             id:           KEY_SEG_ORDER_CHAR,
             name:         "🟣 Character Block Segment Order",
-            category:     ["AntiPyrus Settings", "Segment Order", "Character Blocks"],
+            category:     ["Calibrate Inscriptions", "Segment Order", "Character Blocks"],
             defaultValue: DEFAULT_CHAR_SEGMENTS,
             tooltip:      "Drag to reorder the fields assembled per-character in the prompt.",
             type:         (name, setter, value) => {

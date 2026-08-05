@@ -1,5 +1,11 @@
 import { app } from "/scripts/app.js";
 
+
+/**
+ * Data for Pipeline setup
+ */
+
+
 const NODE_NAMES = ["Checkpoint_KSampler_Piped"]
 
 function hideWidget(node, widget) {

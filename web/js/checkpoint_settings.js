@@ -1,8 +1,15 @@
 import { app } from "/scripts/app.js";
 import { api } from "/scripts/api.js";
+import { maybeAutoBackup } from "./backup_settings.js";
 //import { Synced_Fields } from "/scripts/ksampler_sync.js";
 // import from py for names of synced fields, so we don't have to hardcode them here
 
+/**
+ * - Save Load interaction
+ * - Settings collection
+ * - Preset Management
+ * - Find Sync data for Ksampler
+ */
 
 // #region Notifications
 // Disable notifications
@@ -203,6 +210,7 @@ app.registerExtension({
         await refreshPresetList();
         presetSelectWidget.value = typedname;
         notify(`Preset "${typedname}" saved.`);
+        maybeAutoBackup(); // backup_settings.js
       } else {
         notify("Save failed: " + data.error, true);
       }

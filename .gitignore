@@ -218,3 +218,5 @@ __marimo__/
 .streamlit/secrets.toml
 data/checkpoint_settings.json
 .vscode/settings.json
+data/backup_state.json
+data/backups/backup_rot_1.json
