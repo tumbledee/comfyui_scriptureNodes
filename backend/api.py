@@ -5,6 +5,7 @@ from ..lib.datastorage import compute_hash, load_all_settings, save_all_settings
 # Saves and Stores settings per checkpoint
 
 
+# region Save Load Settings
 # Routes reading messages from the frontend and trigger save/loading
 routes = PromptServer.instance.routes
 
@@ -49,6 +50,32 @@ async def load_checkpoint_settings(request):
 
     return web.json_response({"status": "ok", "settings": data[key]["presets"][preset_name]})
 
+@routes.post("/checkpoint_settings/delete_preset")
+async def delete_preset(request):
+    body = await request.json()
+    ckpt_name = body.get("ckpt_name")
+    preset_name = body.get("preset_name", "").strip()
+
+    if not preset_name:
+        return web.json_response({"error": "preset_name missing"}, status=400)
+
+    ckpt_path = folder_paths.get_full_path("checkpoints", ckpt_name)
+    file_hash = compute_hash(ckpt_path) if ckpt_path else None
+
+    data = load_all_settings()
+    key = find_entry_key(data, ckpt_name, file_hash)
+
+    if key is None or preset_name not in data[key]["presets"]:
+        return web.json_response({"error": "preset not found"}, status=404)
+
+    del data[key]["presets"][preset_name]
+    save_all_settings(data)
+    return web.json_response({"status": "ok", "deleted": preset_name})
+
+# endregion
+# ---------------------------------------------------------------------------------------------
+# region Hash
+
 @routes.post("/checkpoint_settings/list")
 async def list_checkpoint_presets(request):
     body = await request.json()
@@ -61,3 +88,4 @@ async def list_checkpoint_presets(request):
 
     presets = list(data[key]["presets"].keys()) if key else []
     return web.json_response({"status": "ok", "presets": presets})
+
